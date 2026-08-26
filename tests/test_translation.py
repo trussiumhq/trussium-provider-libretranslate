@@ -1,6 +1,7 @@
+import json
+
 import httpx
 import pytest
-import json
 
 from trussium.capabilities.translation import TranslationRequest
 from trussium_provider_libretranslate import LibreTranslateTranslationCapability
