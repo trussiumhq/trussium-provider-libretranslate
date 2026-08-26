@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trussium-provider-libretranslate"
+version = "0.1.0"
+description = "Trussium provider plugin for self-hosted LibreTranslate deployments."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "httpx>=0.28.0",
+    "trussium @ git+https://github.com/trussiumhq/trussium.git@v0.60.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trussium_provider_libretranslate"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[dependency-groups]
+dev = ["mypy>=1.17.0", "gitpython<3.1.44", "pytest>=8.0", "ruff>=0.12.5", "python-semantic-release>=10.0.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+tag_format = "v{version}"
+commit_message = "chore(release): {version}"
+allow_zero_version = true
+major_on_zero = false
+build_command = "uv build"
+
+[tool.semantic_release.publish]
+upload_to_pypi = false
+upload_to_vcs_release = true
+dist_glob_patterns = ["dist/*.whl", "dist/*.tar.gz"]
