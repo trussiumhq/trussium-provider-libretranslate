@@ -27,8 +27,12 @@ class LibreTranslateTranslationCapability(TranslationCapability):
         base_url: str = "http://127.0.0.1:5000",
         api_key: str | None = None,
         client: httpx.AsyncClient | None = None,
+        timeout: httpx.Timeout | float | None = None,
     ) -> None:
-        self._client = client or httpx.AsyncClient(base_url=base_url.rstrip("/"))
+        self._client = client or httpx.AsyncClient(
+            base_url=base_url.rstrip("/"),
+            timeout=timeout if timeout is not None else httpx.Timeout(10.0, connect=3.0),
+        )
         self._owns_client = client is None
         self._api_key = api_key
 
@@ -58,14 +62,22 @@ class LibreTranslateTranslationCapability(TranslationCapability):
                 raise LibreTranslateProviderError("LibreTranslate request timed out") from error
             except httpx.HTTPStatusError as error:
                 raise LibreTranslateProviderError("LibreTranslate rejected the request") from error
-            except (httpx.RequestError, ValueError, TypeError) as error:
+            except httpx.RequestError as error:
+                raise LibreTranslateProviderError("LibreTranslate connection failed") from error
+            except (ValueError, TypeError, AttributeError) as error:
                 raise LibreTranslateProviderError(
                     "LibreTranslate returned an invalid response"
                 ) from error
+            detected = body.get("detectedLanguage")
+            detected_source = (
+                detected.get("language")
+                if isinstance(detected, dict) and isinstance(detected.get("language"), str)
+                else None
+            )
             results.append(
                 TranslationResult(
                     text=translated,
-                    source_language=request.source_language,
+                    source_language=request.source_language or detected_source,
                     target_language=request.target_language,
                 )
             )
